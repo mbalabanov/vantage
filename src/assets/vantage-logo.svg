@@ -1,0 +1,17 @@
+debug.post("/pipelines/piece/run", async (c) => {
+  let body: { documentId?: unknown };
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: "Invalid JSON body" }, 400);
+  }
+
+  const documentId = Number(body.documentId);
+  if (!Number.isInteger(documentId) || documentId <= 0) {
+    return c.json({ error: "documentId must be a positive integer" }, 400);
+  }
+
+  const instance = await c.env.PIECE_INGESTION.create({ params: { documentId } });
+
+  return c.json({ id: instance.id, status: "queued", documentId }, 202);
+});

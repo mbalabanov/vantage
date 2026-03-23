@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vantage — Project Progress Intelligence</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; transition: background 0.5s ease; }
+    .animate-pulse-dot { animation: pulseDot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    @keyframes pulseDot { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+    .line-clamp-1 { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; }
+    [hidden] { display: none !important; }
+    .chevron-open { transform: rotate(180deg); transition: transform 0.2s; }
+    .chevron-closed { transform: rotate(0deg); transition: transform 0.2s; }
+    .dropdown-scroll { max-height: 18rem; overflow-y: auto; }
+    .progress-bar { transition: width 0.7s ease; }
+    /* Lucide inline SVG helper */
+    .icon { display: inline-block; vertical-align: middle; }
+  </style>
+</head>
+<body class="min-h-screen" style="background-color: #f8fafc;">
+
+  <!-- ═══════════════════════════════════════════════ HEADER ═══ -->
+  <header class="sticky top-0 z-50 bg-slate-900 border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-8 h-24 flex items-center justify-between gap-6">
+
+      <!-- Logo -->
+      <button id="logoBtn" class="flex items-center gap-4 flex-shrink-0 hover:opacity-80 transition-opacity cursor-pointer bg-transparent border-0 p-0">
+        <div class="shadow-lg rounded-[12px]" style="box-shadow:0 10px 15px -3px rgba(67,56,202,0.5)">
+          <svg width="52" height="52" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Vantage logo">
+            <defs>
+              <linearGradient id="vantageBg" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#818cf8"/>
+                <stop offset="100%" stop-color="#4338ca"/>
+              </linearGradient>
+            </defs>
+            <rect width="36" height="36" rx="9" fill="url(#vantageBg)"/>
+            <rect width="36" height="18" rx="9" fill="white" fill-opacity="0.04"/>
+            <path d="M7 9 L18 27" stroke="white" stroke-width="5" stroke-linecap="round" stroke-opacity="0.95"/>
+            <path d="M29 9 L18 27" stroke="white" stroke-width="5" stroke-linecap="round" stroke-opacity="0.42"/>
+            <path d="M7 9 L29 9" stroke="white" stroke-width="1.25" stroke-linecap="round" stroke-opacity="0.2"/>
+            <circle cx="18" cy="27" r="2" fill="white" fill-opacity="0.9"/>
+          </svg>
+        </div>
+        <div class="flex items-baseline gap-3">
+          <span class="text-white font-extrabold text-3xl tracking-tight">Vantage</span>
+          <span class="hidden sm:block text-slate-500 text-sm font-medium">Project Progress Intelligence</span>
+        </div>
+      </button>
+
+      <!-- Right controls -->
+      <div class="flex items-center gap-3">
+
+        <!-- Project Switcher (shown only on dashboard) -->
+        <div id="projectSwitcherWrap" class="relative hidden md:block">
+          <button id="switcherBtn" class="flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer max-w-xs border-0" style="background:rgba(30,41,59,0.6);">
+            <svg class="text-slate-500 flex-shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            <span class="text-slate-300 text-xs truncate" style="max-width:220px">
+              <span id="selectedName" class="font-semibold">Project Artemis</span><span class="text-slate-500">: <span id="selectedSub">Core API Modernization</span></span>
+            </span>
+            <svg id="switcherChevron" class="text-slate-500 flex-shrink-0 chevron-closed" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+
+          <!-- Dropdown -->
+          <div id="switcherDropdown" hidden class="absolute left-0 top-full mt-2 w-80 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl z-50 overflow-hidden" style="box-shadow:0 25px 50px -12px rgba(0,0,0,0.6)">
+            <div class="flex items-center gap-2 px-3 py-2.5 border-b border-slate-700">
+              <svg class="text-slate-500 flex-shrink-0" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input id="projectSearch" type="text" placeholder="Filter projects..." class="flex-1 bg-transparent text-slate-200 text-xs outline-none border-0" style="color:#e2e8f0;placeholder-color:#475569"/>
+            </div>
+            <ul id="projectList" class="dropdown-scroll py-1"></ul>
+          </div>
+        </div>
+
+        <!-- View Toggle (shown only on dashboard) -->
+        <div id="viewToggleWrap" class="flex items-center bg-slate-800 rounded-xl p-1 gap-0.5">
+          <button id="pulseBtn" onclick="setView('pulse')" class="flex items-center gap-1.5 px-4 py-2 rounded-[9px] text-[13px] font-semibold transition-all duration-200 cursor-pointer select-none bg-white text-slate-900 shadow border-0">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Pulse
+          </button>
+          <button id="horizonBtn" onclick="setView('horizon')" class="flex items-center gap-1.5 px-4 py-2 rounded-[9px] text-[13px] font-semibold transition-all duration-200 cursor-pointer select-none text-slate-400 border-0 bg-transparent">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+            Horizon
+          </button>
+        </div>
+
+        <!-- Docs / Dashboard toggle -->
+        <button id="pageToggleBtn" onclick="togglePage()" class="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg text-[13px] font-semibold transition-all cursor-pointer bg-slate-700 text-slate-300 border-0">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          <span id="pageToggleLabel">Docs</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════ DASHBOARD ═══ -->
+  <div id="dashboardPage">
+
+    <!-- Sub-header -->
+    <div id="subHeader" class="border-b bg-white border-slate-100" style="transition: background 0.5s, border-color 0.5s;">
+      <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
+        <div>
+          <h1 id="viewTitle" class="font-bold leading-tight text-emerald-600" style="font-size:45px">Pulse View</h1>
+          <p id="viewSubtitle" class="text-xs mt-0.5 text-slate-400">Operational snapshot. What was accomplished this week</p>
+        </div>
+        <div class="flex items-center gap-3 flex-shrink-0">
+          <span id="syncLabel" class="hidden sm:block text-[11px] text-slate-400">Synced. Jira and Confluence</span>
+          <div id="liveBadge" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full border bg-emerald-50 border-emerald-100">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse-dot" style="display:inline-block"></span>
+            <span id="liveLabel" class="text-[11px] font-bold text-emerald-700">Live</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content area -->
+    <main class="max-w-7xl mx-auto px-6 py-8">
+
+      <!-- ─────────────────── PULSE VIEW ─────────────────── -->
+      <div id="pulseView">
+
+        <!-- Weekly Delta -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 mb-6">
+          <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center gap-2">
+              <div class="p-1.5 rounded-lg bg-slate-100">
+                <svg class="text-slate-500" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              </div>
+              <span class="text-xs font-bold tracking-widest uppercase text-slate-500">Weekly Delta</span>
+            </div>
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100 text-[10px] font-bold tracking-widest uppercase select-none">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>AI
+            </span>
+          </div>
+          <p class="text-base font-bold text-slate-900 mb-2">Weekly Velocity: <span class="text-indigo-600">High</span></p>
+          <p class="text-sm leading-relaxed text-slate-500">The team successfully solidified the security foundation (ART-402, ART-405) while stabilizing database performance (ART-410). Documentation is now fully aligned with the new architecture, and the active data migration (ART-412) is progressing without blockers.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+          <!-- Work Completed -->
+          <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+            <div class="flex items-center gap-2 mb-5">
+              <div class="p-1.5 rounded-lg bg-slate-100">
+                <svg class="text-slate-500" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+              </div>
+              <span class="text-xs font-bold tracking-widest uppercase text-slate-500">Work Completed This Week</span>
+            </div>
+            <ul class="space-y-5">
+
+              <!-- ART-402 -->
+              <li class="flex gap-3">
+                <div class="flex-shrink-0 mt-0.5 w-5 h-5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center">
+                  <svg class="text-emerald-500" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-semibold text-slate-800 leading-snug">Upgraded login security to industry-standard encryption.</p>
+                  <p class="text-[11px] text-slate-400 mt-1 leading-snug line-clamp-1">Refactor JWT middleware for RS256 asymmetric signing</p>
+                  <div class="flex items-center gap-1.5 mt-2 flex-wrap">
+                    <span class="font-mono text-[10px] font-semibold text-slate-400 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded">ART-402</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-orange-50 text-orange-700 border-orange-200">High</span>
+                    <span class="text-[10px] font-medium text-slate-500 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded-full">Task</span>
+                  </div>
+                </div>
+              </li>
+
+              <!-- ART-405 -->
+              <li class="flex gap-3">
+                <div class="flex-shrink-0 mt-0.5 w-5 h-5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center">
+                  <svg class="text-emerald-500" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-semibold text-slate-800 leading-snug">Protected the system against login brute-force attacks.</p>
+                  <p class="text-[11px] text-slate-400 mt-1 leading-snug line-clamp-1">Implement Redis-backed rate limiting for /v2/auth endpoints</p>
+                  <div class="flex items-center gap-1.5 mt-2 flex-wrap">
+                    <span class="font-mono text-[10px] font-semibold text-slate-400 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded">ART-405</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-amber-50 text-amber-700 border-amber-200">Medium</span>
+                    <span class="text-[10px] font-medium text-slate-500 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded-full">Feature</span>
+                  </div>
+                </div>
+              </li>
+
+              <!-- ART-410 -->
+              <li class="flex gap-3">
+                <div class="flex-shrink-0 mt-0.5 w-5 h-5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center">
+                  <svg class="text-emerald-500" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-semibold text-slate-800 leading-snug">Resolved intermittent database crashes during peak traffic.</p>
+                  <p class="text-[11px] text-slate-400 mt-1 leading-snug line-clamp-1">Fix race condition in PostgreSQL connection pooler</p>
+                  <div class="flex items-center gap-1.5 mt-2 flex-wrap">
+                    <span class="font-mono text-[10px] font-semibold text-slate-400 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded">ART-410</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-red-50 text-red-700 border-red-200">Critical</span>
+                    <span class="text-[10px] font-medium text-slate-500 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded-full">Bug</span>
+                  </div>
+                </div>
+              </li>
+
+            </ul>
+          </div>
+
+          <!-- Right column -->
+          <div class="space-y-6">
+
+            <!-- Next Steps -->
+            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+              <div class="flex items-center gap-2 mb-5">
+                <div class="p-1.5 rounded-lg bg-slate-100">
+                  <svg class="text-slate-500" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <span class="text-xs font-bold tracking-widest uppercase text-slate-500">Next Steps</span>
+              </div>
+              <ul class="space-y-4">
+                <li class="flex gap-3">
+                  <div class="flex-shrink-0 mt-0.5 w-5 h-5 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center">
+                    <svg class="text-amber-500" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-slate-800 leading-snug">Currently moving user records to the new optimized schema.</p>
+                    <p class="text-[11px] text-slate-400 mt-1 leading-snug line-clamp-1">Data migration script for UserProfile v1 to v2</p>
+                    <div class="flex items-center gap-1.5 mt-2 flex-wrap">
+                      <span class="font-mono text-[10px] font-semibold text-slate-400 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded">ART-412</span>
+                      <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-orange-50 text-orange-700 border-orange-200">High</span>
+                      <span class="text-[10px] font-medium text-slate-500 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded-full">Migration</span>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Confluence Updates -->
+            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+              <div class="flex items-center gap-2 mb-5">
+                <div class="p-1.5 rounded-lg bg-slate-100">
+                  <svg class="text-slate-500" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                </div>
+                <span class="text-xs font-bold tracking-widest uppercase text-slate-500">Confluence Updates</span>
+              </div>
+              <ul class="space-y-4">
+
+                <li class="flex gap-3">
+                  <div class="flex-shrink-0 mt-0.5 w-5 h-5 rounded-md bg-blue-50 border border-blue-100 flex items-center justify-center">
+                    <svg class="text-blue-500" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-slate-800 leading-snug">Updated the compliance checklist for the upcoming audit.</p>
+                    <div class="flex items-center gap-1.5 mt-2 flex-wrap">
+                      <span class="text-[10px] font-bold px-1.5 py-0.5 rounded border bg-blue-50 text-blue-700 border-blue-200">Edit</span>
+                      <span class="text-[11px] font-medium text-slate-500">Security Architecture v2</span>
+                      <span class="text-slate-300 text-xs">·</span>
+                      <span class="text-[11px] text-slate-400">Sarah (Lead Architect)</span>
+                    </div>
+                  </div>
+                </li>
+
+                <li class="flex gap-3">
+                  <div class="flex-shrink-0 mt-0.5 w-5 h-5 rounded-md bg-blue-50 border border-blue-100 flex items-center justify-center">
+                    <svg class="text-blue-500" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-slate-800 leading-snug">Defined the final three milestones for Q3 release.</p>
+                    <div class="flex items-center gap-1.5 mt-2 flex-wrap">
+                      <span class="text-[10px] font-bold px-1.5 py-0.5 rounded border bg-violet-50 text-violet-700 border-violet-200">New Page</span>
+                      <span class="text-[11px] font-medium text-slate-500">API Deployment Roadmap</span>
+                      <span class="text-slate-300 text-xs">·</span>
+                      <span class="text-[11px] text-slate-400">Marcus (Product Manager)</span>
+                    </div>
+                  </div>
+                </li>
+
+              </ul>
+            </div>
+
+          </div>
+        </div>
+      </div><!-- /pulseView -->
+
+      <!-- ─────────────────── HORIZON VIEW ─────────────────── -->
+      <div id="horizonView" hidden>
+
+        <!-- Project Health -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 mb-6">
+          <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center gap-2">
+              <div class="p-1.5 rounded-lg bg-slate-100">
+                <svg class="text-slate-500" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+              </div>
+              <span class="text-xs font-bold tracking-widest uppercase text-slate-500">Project Health</span>
+            </div>
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100 text-[10px] font-bold tracking-widest uppercase select-none">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>AI
+            </span>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-center sm:items-start gap-8">
+            <!-- Circular Progress -->
+            <div class="relative inline-flex items-center justify-center flex-shrink-0" style="width:144px;height:144px">
+              <svg width="144" height="144" style="transform:rotate(-90deg)" aria-hidden="true">
+                <defs>
+                  <linearGradient id="vantageGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#818cf8"/>
+                    <stop offset="100%" stop-color="#6366f1"/>
+                  </linearGradient>
+                </defs>
+                <circle cx="72" cy="72" r="52" stroke-width="10" stroke="#f1f5f9" fill="none"/>
+                <circle cx="72" cy="72" r="52" stroke-width="10" stroke="url(#vantageGrad)" fill="none"
+                  stroke-dasharray="326.73"
+                  stroke-dashoffset="104.55"
+                  stroke-linecap="round"
+                  style="transition:stroke-dashoffset 0.9s cubic-bezier(.4,0,.2,1)"/>
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <span class="text-3xl font-extrabold text-slate-900 tabular-nums leading-none">68%</span>
+                <span class="mt-1 text-[10px] font-bold tracking-widest uppercase text-slate-400">Complete</span>
+              </div>
+            </div>
+
+            <div class="flex-1 min-w-0">
+              <p class="text-xl font-extrabold text-slate-900 leading-tight">68% of Project Objectives Met</p>
+              <div class="mt-2 mb-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse-dot" style="display:inline-block"></span>
+                <span class="text-xs font-bold text-emerald-700">On Track</span>
+              </div>
+              <p class="text-sm leading-relaxed text-slate-500">We have achieved full security compliance ahead of schedule. The current focus has shifted to Database Scalability (45% complete). All indicators remain positive for the Q3 Beta release.</p>
+              <div class="mt-4 pt-4 border-t border-slate-100">
+                <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Project Objective</p>
+                <p class="text-sm font-medium text-slate-700">Migrate legacy authentication and scale database throughput by 40%.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+          <!-- Objective Mapping -->
+          <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+            <div class="flex items-center gap-2 mb-5">
+              <div class="p-1.5 rounded-lg bg-slate-100">
+                <svg class="text-slate-500" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+              </div>
+              <span class="text-xs font-bold tracking-widest uppercase text-slate-500">Objective Mapping</span>
+            </div>
+            <div class="space-y-6">
+
+              <!-- Auth Security Hardening -->
+              <div class="flex items-start gap-3">
+                <div class="flex-shrink-0 mt-0.5 w-9 h-9 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center">
+                  <svg class="text-slate-600" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-semibold text-slate-800">Auth Security Hardening</span>
+                    <div class="flex items-center gap-2 ml-2 flex-shrink-0">
+                      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-indigo-50 text-indigo-700 border-indigo-200">Completed</span>
+                      <span class="text-xs font-bold text-slate-700 tabular-nums" style="min-width:2rem;text-align:right">100%</span>
+                    </div>
+                  </div>
+                  <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-full rounded-full bg-indigo-600 progress-bar" style="width:100%"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Database Scalability -->
+              <div class="flex items-start gap-3">
+                <div class="flex-shrink-0 mt-0.5 w-9 h-9 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center">
+                  <svg class="text-slate-600" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-semibold text-slate-800">Database Scalability</span>
+                    <div class="flex items-center gap-2 ml-2 flex-shrink-0">
+                      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-amber-50 text-amber-700 border-amber-200">In Progress</span>
+                      <span class="text-xs font-bold text-slate-700 tabular-nums" style="min-width:2rem;text-align:right">45%</span>
+                    </div>
+                  </div>
+                  <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-full rounded-full bg-amber-500 progress-bar" style="width:45%"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- External API Beta -->
+              <div class="flex items-start gap-3">
+                <div class="flex-shrink-0 mt-0.5 w-9 h-9 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center">
+                  <svg class="text-slate-600" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-semibold text-slate-800">External API Beta</span>
+                    <div class="flex items-center gap-2 ml-2 flex-shrink-0">
+                      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-slate-50 text-slate-500 border-slate-200">Upcoming</span>
+                      <span class="text-xs font-bold text-slate-700 tabular-nums" style="min-width:2rem;text-align:right">0%</span>
+                    </div>
+                  </div>
+                  <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-full rounded-full bg-slate-200 progress-bar" style="width:0%"></div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Roadmap -->
+          <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+            <div class="flex items-center gap-2 mb-5">
+              <div class="p-1.5 rounded-lg bg-slate-100">
+                <svg class="text-slate-500" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+              </div>
+              <span class="text-xs font-bold tracking-widest uppercase text-slate-500">Roadmap</span>
+            </div>
+            <div class="relative">
+              <div class="absolute bg-slate-100" style="left:16px;top:16px;bottom:16px;width:1px"></div>
+              <ol class="space-y-7 relative">
+
+                <!-- Completed -->
+                <li class="flex gap-4 items-start">
+                  <div class="relative z-10 flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center bg-indigo-600 border-indigo-600">
+                    <svg class="text-white" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                  </div>
+                  <div class="flex-1 pt-0.5">
+                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                      <p class="text-sm font-bold text-slate-800">Auth Security Hardening</p>
+                      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-indigo-50 text-indigo-700 border-indigo-200">Completed</span>
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed">Full security compliance delivered. Audit-ready documentation signed off.</p>
+                  </div>
+                </li>
+
+                <!-- In Progress -->
+                <li class="flex gap-4 items-start">
+                  <div class="relative z-10 flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center bg-white border-amber-400">
+                    <svg class="text-amber-500" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  </div>
+                  <div class="flex-1 pt-0.5">
+                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                      <p class="text-sm font-bold text-slate-800">Database Scalability</p>
+                      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-amber-50 text-amber-700 border-amber-200">In Progress</span>
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed">45% complete — schema migration underway, targeting end of sprint.</p>
+                  </div>
+                </li>
+
+                <!-- Upcoming -->
+                <li class="flex gap-4 items-start">
+                  <div class="relative z-10 flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center bg-white border-slate-200">
+                    <svg class="text-slate-400" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
+                  </div>
+                  <div class="flex-1 pt-0.5">
+                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                      <p class="text-sm font-bold text-slate-800">External API Beta</p>
+                      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-slate-50 text-slate-500 border-slate-200">Upcoming</span>
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed">Scheduled for Q3. Dependent on Database Scalability milestone.</p>
+                  </div>
+                </li>
+
+              </ol>
+            </div>
+          </div>
+
+        </div>
+      </div><!-- /horizonView -->
+
+    </main>
+  </div><!-- /dashboardPage -->
+
+  <!-- ═══════════════════════════════════════════════ DOCS PAGE ═══ -->
+  <div id="docsPage" hidden style="background-color:#f8fafc">
+    <main class="max-w-4xl mx-auto px-6 py-8 text-slate-800">
+
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 mb-8">
+        <h1 class="text-4xl font-bold mb-4">About Vantage</h1>
+        <p class="text-lg leading-relaxed text-slate-600">
+          Vantage is a modern executive intelligence dashboard that synthesizes project data from Jira and Confluence into clear, actionable business insights.
+        </p>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 mb-8">
+        <h2 class="text-2xl font-bold mb-4">Purpose</h2>
+        <p class="text-sm leading-relaxed text-slate-600 mb-4">
+          Most teams scatter critical project information across multiple tools. Developers live in Jira. Leaders read Confluence. Nobody has a unified view of progress.
+        </p>
+        <p class="text-sm leading-relaxed text-slate-600">
+          Vantage bridges this gap by ingesting raw technical data from your existing systems and reframing it as strategic intelligence. It translates tickets into outcomes and roadmaps into narrative clarity.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+          <h3 class="text-xl font-bold mb-3 text-indigo-600">Pulse View</h3>
+          <p class="text-sm leading-relaxed text-slate-600">
+            Operational insight for execution teams. See what was completed this week, understand immediate next steps, and stay aligned on day-to-day progress.
+          </p>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+          <h3 class="text-xl font-bold mb-3 text-sky-500">Horizon View</h3>
+          <p class="text-sm leading-relaxed text-slate-600">
+            Strategic insight for leadership. Track objective completion, visualize roadmap status, and understand project health at a glance.
+          </p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 mb-8">
+        <h2 class="text-2xl font-bold mb-4">Key Features</h2>
+        <ul class="space-y-3 text-sm text-slate-600">
+          <li><strong>AI-Powered Summaries.</strong> Technical work is instantly translated into business language.</li>
+          <li><strong>Dual Perspective.</strong> Switch between Pulse and Horizon views with one click.</li>
+          <li><strong>Unified Data Stream.</strong> Jira tickets and Confluence updates appear together.</li>
+          <li><strong>Non-Disruptive.</strong> Reads from existing tools. No data entry, no new systems.</li>
+          <li><strong>Executive-Ready Design.</strong> Built for C-suite consumption and presentation-ready screenshots.</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+        <h2 class="text-2xl font-bold mb-4">Use Cases</h2>
+        <ul class="space-y-2 text-sm text-slate-600">
+          <li><strong>Standup Briefings.</strong> Start your day with Pulse View to see what shipped.</li>
+          <li><strong>Sprint Planning.</strong> Reference Pulse and Horizon together to scope priorities.</li>
+          <li><strong>Stakeholder Updates.</strong> Pull Horizon View into status reports with zero extra work.</li>
+          <li><strong>Investor Pitch.</strong> Show project health and roadmap in under 30 seconds.</li>
+          <li><strong>Cross-Functional Alignment.</strong> Engineering, product, and leadership see the same data.</li>
+        </ul>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ TOAST ═══ -->
+  <div id="toast" hidden role="status" aria-live="polite"
+    class="fixed right-6 z-[70] max-w-md rounded-xl px-4 py-3 shadow-2xl"
+    style="top:7rem;border:1px solid rgba(252,211,77,0.4);background:rgba(15,23,42,0.95);box-shadow:0 25px 50px -12px rgba(0,0,0,0.6)">
+    <p class="text-sm font-semibold" style="color:#fcd34d">Demo Notice</p>
+    <p class="mt-1 text-xs leading-relaxed text-slate-200">This is a demo. Only Project Artemis: Core API Modernization has data to show.</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ SCRIPT ═══ -->
+  <script>
+    // ── Data ──────────────────────────────────────────────────────
+    const projects = [
+      { id: 1,  name: 'Project Artemis',    subtitle: 'Core API Modernization' },
+      { id: 2,  name: 'Project Apollo',     subtitle: 'Cloud Infrastructure Migration' },
+      { id: 3,  name: 'Project Athena',     subtitle: 'Enterprise Knowledge Management' },
+      { id: 4,  name: 'Project Hermes',     subtitle: 'Real-Time Messaging Platform' },
+      { id: 5,  name: 'Project Hera',       subtitle: 'Workforce Management Suite' },
+      { id: 6,  name: 'Project Poseidon',   subtitle: 'Data Lake & Analytics Pipeline' },
+      { id: 7,  name: 'Project Ares',       subtitle: 'Cybersecurity Threat Response' },
+      { id: 8,  name: 'Project Demeter',    subtitle: 'Supply Chain Optimisation' },
+      { id: 9,  name: 'Project Hestia',     subtitle: 'Internal Developer Portal' },
+      { id: 10, name: 'Project Dionysus',   subtitle: 'Customer Experience Personalisation' },
+      { id: 11, name: 'Project Persephone', subtitle: 'Hybrid Work Transition Programme' },
+      { id: 12, name: 'Project Hephaestus', subtitle: 'Manufacturing Automation Platform' },
+    ];
+    const DEMO_PROJECT_ID = 1;
+
+    // ── State ─────────────────────────────────────────────────────
+    let currentView = 'pulse';
+    let currentPage = 'dashboard';
+    let selectedProjectId = DEMO_PROJECT_ID;
+    let dropdownOpen = false;
+    let toastTimer = null;
+
+    // ── DOM refs ──────────────────────────────────────────────────
+    const body              = document.body;
+    const dashboardPage     = document.getElementById('dashboardPage');
+    const docsPage          = document.getElementById('docsPage');
+    const pulseView         = document.getElementById('pulseView');
+    const horizonView       = document.getElementById('horizonView');
+    const subHeader         = document.getElementById('subHeader');
+    const viewTitle         = document.getElementById('viewTitle');
+    const viewSubtitle      = document.getElementById('viewSubtitle');
+    const syncLabel         = document.getElementById('syncLabel');
+    const liveBadge         = document.getElementById('liveBadge');
+    const liveLabel         = document.getElementById('liveLabel');
+    const pulseBtn          = document.getElementById('pulseBtn');
+    const horizonBtn        = document.getElementById('horizonBtn');
+    const viewToggleWrap    = document.getElementById('viewToggleWrap');
+    const projectSwitcherWrap = document.getElementById('projectSwitcherWrap');
+    const pageToggleBtn     = document.getElementById('pageToggleBtn');
+    const pageToggleLabel   = document.getElementById('pageToggleLabel');
+    const switcherBtn       = document.getElementById('switcherBtn');
+    const switcherChevron   = document.getElementById('switcherChevron');
+    const switcherDropdown  = document.getElementById('switcherDropdown');
+    const projectSearch     = document.getElementById('projectSearch');
+    const projectList       = document.getElementById('projectList');
+    const selectedNameEl    = document.getElementById('selectedName');
+    const selectedSubEl     = document.getElementById('selectedSub');
+    const toast             = document.getElementById('toast');
+
+    // ── View switching ────────────────────────────────────────────
+    function setView(v) {
+      currentView = v;
+
+      if (v === 'pulse') {
+        // Body background
+        body.style.background = '#f8fafc';
+
+        // Sub-header
+        subHeader.style.background = '#ffffff';
+        subHeader.style.borderColor = '#f1f5f9';
+
+        // Title
+        viewTitle.style.color = '#059669'; // emerald-600
+        viewTitle.textContent = 'Pulse View';
+        viewSubtitle.style.color = '#94a3b8';
+        viewSubtitle.textContent = 'Operational snapshot. What was accomplished this week';
+
+        // Sync label
+        syncLabel.style.color = '#94a3b8';
+
+        // Live badge
+        liveBadge.style.background = 'rgb(236,253,245)';
+        liveBadge.style.borderColor = 'rgb(209,250,229)';
+        liveLabel.style.color = '#065f46';
+
+        // View toggle buttons
+        pulseBtn.className = 'flex items-center gap-1.5 px-4 py-2 rounded-[9px] text-[13px] font-semibold transition-all duration-200 cursor-pointer select-none bg-white text-slate-900 shadow border-0';
+        horizonBtn.className = 'flex items-center gap-1.5 px-4 py-2 rounded-[9px] text-[13px] font-semibold transition-all duration-200 cursor-pointer select-none text-slate-400 border-0 bg-transparent';
+
+        // Views
+        pulseView.hidden = false;
+        horizonView.hidden = true;
+
+      } else {
+        // Body background
+        body.style.background = 'linear-gradient(145deg, #0b0f1e 0%, #151b3a 45%, #0e172e 100%)';
+
+        // Sub-header
+        subHeader.style.background = 'rgba(15,20,45,0.85)';
+        subHeader.style.borderColor = 'rgba(255,255,255,0.05)';
+
+        // Title
+        viewTitle.style.color = '#38bdf8'; // sky-400
+        viewTitle.textContent = 'Horizon View';
+        viewSubtitle.style.color = 'rgba(165,180,252,0.7)'; // indigo-300/70
+        viewSubtitle.textContent = 'Strategic overview. Where the project is headed';
+
+        // Sync label
+        syncLabel.style.color = '#64748b';
+
+        // Live badge
+        liveBadge.style.background = 'rgba(16,185,129,0.1)';
+        liveBadge.style.borderColor = 'rgba(16,185,129,0.25)';
+        liveLabel.style.color = '#34d399';
+
+        // View toggle buttons
+        pulseBtn.className = 'flex items-center gap-1.5 px-4 py-2 rounded-[9px] text-[13px] font-semibold transition-all duration-200 cursor-pointer select-none text-slate-400 border-0 bg-transparent';
+        horizonBtn.className = 'flex items-center gap-1.5 px-4 py-2 rounded-[9px] text-[13px] font-semibold transition-all duration-200 cursor-pointer select-none bg-white text-slate-900 shadow border-0';
+
+        // Views
+        pulseView.hidden = true;
+        horizonView.hidden = false;
+      }
+    }
+
+    // ── Page switching ────────────────────────────────────────────
+    function togglePage() {
+      if (currentPage === 'dashboard') {
+        currentPage = 'docs';
+        dashboardPage.hidden = true;
+        docsPage.hidden = false;
+        projectSwitcherWrap.style.display = 'none';
+        viewToggleWrap.style.display = 'none';
+        pageToggleLabel.textContent = 'Dashboard';
+        pageToggleBtn.style.background = '#4f46e5'; // indigo-600
+        pageToggleBtn.style.color = '#ffffff';
+        body.style.background = '#f8fafc';
+      } else {
+        currentPage = 'dashboard';
+        dashboardPage.hidden = false;
+        docsPage.hidden = true;
+        projectSwitcherWrap.style.display = '';
+        viewToggleWrap.style.display = '';
+        pageToggleLabel.textContent = 'Docs';
+        pageToggleBtn.style.background = '#334155'; // slate-700
+        pageToggleBtn.style.color = '#cbd5e1';
+        setView(currentView); // restore dashboard background
+      }
+    }
+
+    // Logo click: go back to dashboard, pulse view
+    document.getElementById('logoBtn').addEventListener('click', function() {
+      if (currentPage !== 'dashboard') togglePage();
+      setView('pulse');
+    });
+
+    // ── Project switcher ──────────────────────────────────────────
+    function renderProjectList(filter) {
+      filter = (filter || '').toLowerCase();
+      const filtered = projects.filter(p =>
+        (p.name + ' ' + p.subtitle).toLowerCase().includes(filter)
+      );
+      if (filtered.length === 0) {
+        projectList.innerHTML = '<li class="px-4 py-3 text-xs text-center" style="color:#64748b">No projects found</li>';
+        return;
+      }
+      projectList.innerHTML = filtered.map(p => {
+        const isSelected = p.id === selectedProjectId;
+        return `<li>
+          <button
+            onclick="selectProject(${p.id})"
+            class="w-full text-left px-4 py-2.5 flex flex-col gap-0.5 cursor-pointer border-0"
+            style="background:${isSelected ? 'rgba(99,102,241,0.2)' : 'transparent'}"
+            onmouseover="this.style.background='${isSelected ? 'rgba(99,102,241,0.2)' : 'rgba(51,65,85,0.6)'}'"
+            onmouseout="this.style.background='${isSelected ? 'rgba(99,102,241,0.2)' : 'transparent'}'">
+            <span style="font-size:12px;font-weight:600;color:${isSelected ? '#a5b4fc' : '#e2e8f0'}">${escHtml(p.name)}</span>
+            <span style="font-size:11px;color:#64748b;line-height:1.4">${escHtml(p.subtitle)}</span>
+          </button>
+        </li>`;
+      }).join('');
+    }
+
+    function escHtml(str) {
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function openDropdown() {
+      dropdownOpen = true;
+      switcherDropdown.hidden = false;
+      switcherChevron.classList.remove('chevron-closed');
+      switcherChevron.classList.add('chevron-open');
+      projectSearch.value = '';
+      renderProjectList('');
+      setTimeout(() => projectSearch.focus(), 50);
+    }
+
+    function closeDropdown() {
+      dropdownOpen = false;
+      switcherDropdown.hidden = true;
+      switcherChevron.classList.remove('chevron-open');
+      switcherChevron.classList.add('chevron-closed');
+    }
+
+    switcherBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      dropdownOpen ? closeDropdown() : openDropdown();
+    });
+
+    switcherDropdown.addEventListener('click', function(e) { e.stopPropagation(); });
+
+    document.addEventListener('click', function() { if (dropdownOpen) closeDropdown(); });
+
+    projectSearch.addEventListener('input', function() {
+      renderProjectList(this.value);
+    });
+
+    function selectProject(id) {
+      if (id !== DEMO_PROJECT_ID) {
+        closeDropdown();
+        showToast();
+        return;
+      }
+      selectedProjectId = id;
+      const p = projects.find(x => x.id === id);
+      selectedNameEl.textContent = p.name;
+      selectedSubEl.textContent = p.subtitle;
+      closeDropdown();
+    }
+
+    // ── Toast ─────────────────────────────────────────────────────
+    function showToast() {
+      toast.hidden = false;
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { toast.hidden = true; }, 3200);
+    }
+
+    // ── Init ──────────────────────────────────────────────────────
+    renderProjectList('');
+  </script>
+
+</body>
+</html>
