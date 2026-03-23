@@ -8,6 +8,18 @@ Instead of context-switching between Jira, Confluence, and status meetings, Vant
 
 It gives engineering leaders and PMs the vantage point they need: see which projects are on track, what's blocking them, and where the team's focus is... in seconds, not spreadsheets.
 
+## AI Chat Assistant
+
+Vantage includes a conversational AI assistant accessible via a floating chat button in the dashboard. Ask questions about your project in natural language and get instant answers about:
+
+- Project progress and completion status
+- Current risks and blockers
+- Timeline estimates and milestones
+- Team velocity and workload
+- Specific ticket details
+
+The AI assistant understands context from your live Jira and Confluence data to provide relevant, actionable insights without leaving the dashboard.
+
 ## Prerequisites
 
 - Node.js 18+ (Node.js 20 LTS recommended)

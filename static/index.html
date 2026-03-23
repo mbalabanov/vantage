@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Vantage — Project Progress Intelligence</title>
-  <script src="css/tailwind.css"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; transition: background 0.5s ease; }
     .animate-pulse-dot { animation: pulseDot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
@@ -535,6 +535,73 @@
     <p class="mt-1 text-xs leading-relaxed text-slate-200">This is a demo. Only Project Artemis: Core API Modernization has data to show.</p>
   </div>
 
+  <!-- ═══════════════════════════════════════════════ FLOATING CHAT BUTTON ═══ -->
+  <button id="chatBtn" class="fixed bottom-6 right-6 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-lg cursor-pointer border-0 flex items-center justify-center z-40 transition-all" style="transition:all 0.2s" onmouseover="this.style.transform='scale(1.1)';this.style.background='#4338ca'" onmouseout="this.style.transform='scale(1)';this.style.background='#4f46e5'">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  </button>
+
+  <!-- ═══════════════════════════════════════════════ CHAT PANEL ═══ -->
+  <div id="chatPanel" hidden class="fixed inset-0 z-50 flex items-end justify-end" style="pointer-events:none">
+    <div class="bg-white rounded-t-2xl shadow-2xl flex flex-col" style="pointer-events:auto;width:100%;max-width:384px;height:600px;max-height:80vh;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25)">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between p-4 border-b border-slate-200">
+        <div class="flex items-center gap-2">
+          <div class="p-2 rounded-lg bg-indigo-50">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Ask Vantage</h3>
+            <p class="text-xs text-slate-500">AI Project Assistant</p>
+          </div>
+        </div>
+        <button id="closeChatBtn" class="p-1.5 rounded-lg cursor-pointer border-0 bg-transparent transition-colors" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-500"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <!-- Instructions -->
+      <div class="px-4 py-3 bg-indigo-50 border-b border-indigo-100">
+        <p class="text-xs text-indigo-700 leading-relaxed">
+          Ask questions about project progress, risks, timelines, blockers, and team velocity.
+        </p>
+      </div>
+
+      <!-- Messages -->
+      <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-4">
+        <!-- Initial message -->
+        <div class="flex gap-2 justify-start">
+          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>
+          </div>
+          <div class="max-w-[80%] px-3 py-2 rounded-lg text-sm leading-relaxed bg-slate-100 text-slate-700 border border-slate-200" style="border-bottom-left-radius:4px">
+            Hello! I can help answer questions about your current project. Ask me anything about Project Artemis.
+          </div>
+        </div>
+      </div>
+
+      <!-- Input -->
+      <div class="p-4 border-t border-slate-200 bg-slate-50">
+        <div class="flex gap-2">
+          <input
+            id="chatInput"
+            type="text"
+            placeholder="Ask about your project..."
+            class="flex-1 px-3 py-2 text-sm border border-slate-300 rounded-lg outline-none"
+            style="transition:box-shadow 0.2s,border-color 0.2s"
+            onfocus="this.style.boxShadow='0 0 0 2px rgba(99,102,241,0.5)';this.style.borderColor='transparent'"
+            onblur="this.style.boxShadow='none';this.style.borderColor='rgb(203,213,225)'"
+            oninput="sendChatBtn.disabled = !this.value.trim(); sendChatBtn.style.opacity = this.value.trim() ? '1' : '0.5'; sendChatBtn.style.cursor = this.value.trim() ? 'pointer' : 'not-allowed'"
+          />
+          <button id="sendChatBtn" disabled class="flex-shrink-0 px-4 py-2 bg-indigo-600 text-white rounded-lg border-0 transition-colors" style="background:#4f46e5;opacity:0.5;cursor:not-allowed" onmouseover="if(!this.disabled){this.style.background='#4338ca'}" onmouseout="if(!this.disabled){this.style.background='#4f46e5'}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <!-- ═══════════════════════════════════════════════ SCRIPT ═══ -->
   <script>
     // ── Data ──────────────────────────────────────────────────────
@@ -560,6 +627,7 @@
     let selectedProjectId = DEMO_PROJECT_ID;
     let dropdownOpen = false;
     let toastTimer = null;
+    let chatOpen = false;
 
     // ── DOM refs ──────────────────────────────────────────────────
     const body              = document.body;
@@ -587,6 +655,12 @@
     const selectedNameEl    = document.getElementById('selectedName');
     const selectedSubEl     = document.getElementById('selectedSub');
     const toast             = document.getElementById('toast');
+    const chatBtn           = document.getElementById('chatBtn');
+    const chatPanel         = document.getElementById('chatPanel');
+    const closeChatBtn      = document.getElementById('closeChatBtn');
+    const chatMessages      = document.getElementById('chatMessages');
+    const chatInput         = document.getElementById('chatInput');
+    const sendChatBtn       = document.getElementById('sendChatBtn');
 
     // ── View switching ────────────────────────────────────────────
     function setView(v) {
@@ -666,6 +740,8 @@
         pageToggleBtn.style.background = '#4f46e5'; // indigo-600
         pageToggleBtn.style.color = '#ffffff';
         body.style.background = '#f8fafc';
+        chatBtn.hidden = true; // Hide chat button on docs page
+        if (chatOpen) closeChat(); // Close chat if open
       } else {
         currentPage = 'dashboard';
         dashboardPage.hidden = false;
@@ -676,6 +752,7 @@
         pageToggleBtn.style.background = '#334155'; // slate-700
         pageToggleBtn.style.color = '#cbd5e1';
         setView(currentView); // restore dashboard background
+        if (!chatOpen) chatBtn.hidden = false; // Show chat button on dashboard
       }
     }
 
@@ -764,6 +841,73 @@
       if (toastTimer) clearTimeout(toastTimer);
       toastTimer = setTimeout(() => { toast.hidden = true; }, 3200);
     }
+
+    // ── Chat ──────────────────────────────────────────────────────
+    function openChat() {
+      chatOpen = true;
+      chatPanel.hidden = false;
+      chatBtn.hidden = true;
+      chatInput.focus();
+    }
+
+    function closeChat() {
+      chatOpen = false;
+      chatPanel.hidden = true;
+      chatBtn.hidden = false;
+    }
+
+    function addMessage(role, text) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `flex gap-2 ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+
+      if (role === 'assistant') {
+        msgDiv.innerHTML = `
+          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>
+          </div>
+          <div class="max-w-[80%] px-3 py-2 rounded-lg text-sm leading-relaxed bg-slate-100 text-slate-700 border border-slate-200" style="border-bottom-left-radius:4px">
+            ${escHtml(text)}
+          </div>
+        `;
+      } else {
+        msgDiv.innerHTML = `
+          <div class="max-w-[80%] px-3 py-2 rounded-lg text-sm leading-relaxed bg-indigo-600 text-white" style="border-bottom-right-radius:4px">
+            ${escHtml(text)}
+          </div>
+          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-slate-700 border border-slate-800 flex items-center justify-center">
+            <span class="text-xs font-semibold text-white">You</span>
+          </div>
+        `;
+      }
+
+      chatMessages.appendChild(msgDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function sendMessage() {
+      const text = chatInput.value.trim();
+      if (!text) return;
+
+      addMessage('user', text);
+      chatInput.value = '';
+      sendChatBtn.disabled = true;
+      sendChatBtn.style.opacity = '0.5';
+      sendChatBtn.style.cursor = 'not-allowed';
+
+      setTimeout(() => {
+        addMessage('assistant', 'This is a non-functional prototype that is not connected to an AI. In the full version, this chat would provide real-time insights about your project data, answer questions about progress, risks, timelines, and team velocity based on live Jira and Confluence data.');
+      }, 500);
+    }
+
+    chatBtn.addEventListener('click', openChat);
+    closeChatBtn.addEventListener('click', closeChat);
+    sendChatBtn.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
 
     // ── Init ──────────────────────────────────────────────────────
     renderProjectList('');
