@@ -12,15 +12,17 @@ Please find a working **click-prototype** here: https://ptstest.com/vantage/
 
 Please find the **GitHub repository** of the click-prototype here: https://github.com/mbalabanov/vantage
 
-
 ### Two Views. One Platform
+
 - **Pulse View**: Operational snapshot for execution teams. See what shipped this week, what's in progress, and what's next.
 
-![Pulse View](./img/01_vantage_pulse_view.png) - Operational snapshot for execution teams. See what shipped this week, what's in progress, and what's next.
+![Pulse View](./img/01_vantage_pulse_view.png)
+<p align="center"><em>Pulse View: Operational snapshot for execution teams. See what shipped this week, what's in progress, and what's next.</em></p>
 
 - **Horizon View**: Strategic overview for leadership. Track objectives, visualize roadmaps, and understand project health at a glance.
 
-![Horizon View](./img/02_vantage_horizon_view.png) - Strategic overview for leadership. Track objectives, visualize roadmaps, and understand project health at a glance.
+![Horizon View](./img/02_vantage_horizon_view.png)
+<p align="center"><em>Horizon View: Strategic overview for leadership. Track objectives, visualize roadmaps, and understand project health at a glance.</em></p>
 
 ## Key Features
 - **AI-Powered Summaries**: Technical tickets become business outcomes automatically
@@ -30,7 +32,8 @@ Please find the **GitHub repository** of the click-prototype here: https://githu
 - **Executive-Ready Design**: Built for high-level leadership suite consumption and presentation-ready screenshots
 - **Real-Time Intelligence**: Always synced, always current
 
-![AI Chat](./img/03_vantage_ai_chat.png) - AI chat that allows users to ask anything about the project.
+![AI Chat](./img/03_vantage_ai_chat.png)
+<p align="center"><em>AI chat that allows users to ask anything about the project.</em></p>
 
 ### Use Cases
 - Standup briefings and sprint planning
@@ -43,4 +46,5 @@ Vantage connects directly to the existing Atlassian ecosystem using secure servi
 
 ## The Result:
 Vantage turns scattered project data into strategic clarity. Give every stakeholder the view they need. Provide better alignment faster.
-![Docs View](./img/04_vantage_docs_view.png) - The Documentation Page
+![Docs View](./img/04_vantage_docs_view.png)
+<p align="center"><em>The Documentation Page</em></p>
