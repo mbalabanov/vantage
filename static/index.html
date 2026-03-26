@@ -84,10 +84,22 @@
           </button>
         </div>
 
-        <!-- Docs / Dashboard toggle -->
-        <button id="pageToggleBtn" onclick="togglePage()" class="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg text-[13px] font-semibold transition-all cursor-pointer bg-slate-700 text-slate-300 border-0">
+        <!-- Dashboard button (shown when not on dashboard) -->
+        <button id="dashboardBtn" hidden onclick="goToPage('dashboard')" class="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg text-[13px] font-semibold transition-all cursor-pointer bg-slate-700 text-slate-300 border-0">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Dashboard
+        </button>
+
+        <!-- Docs button -->
+        <button id="docsBtn" onclick="goToPage('docs')" class="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg text-[13px] font-semibold transition-all cursor-pointer bg-slate-700 text-slate-300 border-0">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-          <span id="pageToggleLabel">Docs</span>
+          Docs
+        </button>
+
+        <!-- Settings button -->
+        <button id="settingsBtn" onclick="goToPage('settings')" class="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg text-[13px] font-semibold transition-all cursor-pointer bg-slate-700 text-slate-300 border-0">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"/></svg>
+          Settings
         </button>
       </div>
     </div>
@@ -513,6 +525,33 @@
         </ul>
       </div>
 
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 mb-8">
+        <h2 class="text-2xl font-bold mb-4">Configuration & Settings</h2>
+        <p class="text-sm leading-relaxed text-slate-600 mb-4">
+          Vantage connects seamlessly to your Atlassian ecosystem through secure service account integration. The Settings page provides a centralized location to manage all connection configurations.
+        </p>
+        <div class="space-y-4">
+          <div>
+            <h3 class="text-base font-semibold text-slate-800 mb-2">Jira Instance Selection</h3>
+            <p class="text-sm leading-relaxed text-slate-600">
+              Choose which Jira environment to connect to: Production, Staging, or Development. Vantage automatically syncs tickets, sprints, and epics from the selected instance in real-time. Switch between instances without losing your configuration.
+            </p>
+          </div>
+          <div>
+            <h3 class="text-base font-semibold text-slate-800 mb-2">Confluence Instance Selection</h3>
+            <p class="text-sm leading-relaxed text-slate-600">
+              Select your Confluence workspace to monitor documentation updates, page changes, and team collaboration. Vantage tracks all spaces and surfaces relevant documentation context alongside technical work.
+            </p>
+          </div>
+          <div>
+            <h3 class="text-base font-semibold text-slate-800 mb-2">Service Account Credentials</h3>
+            <p class="text-sm leading-relaxed text-slate-600">
+              Secure authentication through dedicated service account credentials. Configure your Atlassian email, API token, and organization ID once. All credentials are encrypted at rest and in transit. Connection status and sync timing are displayed in real-time, with automatic token rotation notifications.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
         <h2 class="text-2xl font-bold mb-4">Use Cases</h2>
         <ul class="space-y-2 text-sm text-slate-600">
@@ -524,6 +563,205 @@
         </ul>
       </div>
 
+    </main>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ SETTINGS PAGE ═══ -->
+  <div id="settingsPage" hidden style="background-color:#f8fafc">
+    <main class="max-w-5xl mx-auto px-6 py-8">
+      <div class="mb-8">
+        <h1 class="text-4xl font-bold text-slate-900 mb-2">Settings</h1>
+        <p class="text-sm text-slate-500">Configure your Atlassian integrations and service account credentials</p>
+      </div>
+
+      <!-- Jira Instances -->
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 mb-6">
+        <div class="flex items-center justify-between mb-5">
+          <div class="flex items-center gap-2">
+            <div class="p-1.5 rounded-lg bg-slate-100">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-500"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            </div>
+            <span class="text-xs font-bold tracking-widest uppercase text-slate-500">Jira Instances</span>
+          </div>
+        </div>
+        <p class="text-sm text-slate-600 mb-6">
+          Select the Jira instance you want to connect to. Vantage will sync tickets, sprints, and epics in real-time.
+        </p>
+        <div class="space-y-3">
+          <label class="flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all border-indigo-500 bg-indigo-50" style="background:rgba(99,102,241,0.05)">
+            <input type="radio" name="jira-instance" value="jira-prod" checked class="mt-1 w-4 h-4 cursor-pointer" style="accent-color:#4f46e5"/>
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-sm font-semibold text-slate-900">Production Jira</span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-600 text-white">ACTIVE</span>
+              </div>
+              <p class="text-xs text-slate-500 font-mono mb-1">https://mycompany.atlassian.net</p>
+              <p class="text-xs text-slate-400">47 projects</p>
+            </div>
+          </label>
+          <label class="flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all border-slate-200 bg-white hover:border-slate-300">
+            <input type="radio" name="jira-instance" value="jira-staging" class="mt-1 w-4 h-4 cursor-pointer" style="accent-color:#4f46e5"/>
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-sm font-semibold text-slate-900">Staging Jira</span>
+              </div>
+              <p class="text-xs text-slate-500 font-mono mb-1">https://staging-mycompany.atlassian.net</p>
+              <p class="text-xs text-slate-400">23 projects</p>
+            </div>
+          </label>
+          <label class="flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all border-slate-200 bg-white hover:border-slate-300">
+            <input type="radio" name="jira-instance" value="jira-dev" class="mt-1 w-4 h-4 cursor-pointer" style="accent-color:#4f46e5"/>
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-sm font-semibold text-slate-900">Development Jira</span>
+              </div>
+              <p class="text-xs text-slate-500 font-mono mb-1">https://dev-mycompany.atlassian.net</p>
+              <p class="text-xs text-slate-400">12 projects</p>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Confluence Instances -->
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 mb-6">
+        <div class="flex items-center justify-between mb-5">
+          <div class="flex items-center gap-2">
+            <div class="p-1.5 rounded-lg bg-slate-100">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-500"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            </div>
+            <span class="text-xs font-bold tracking-widest uppercase text-slate-500">Confluence Instances</span>
+          </div>
+        </div>
+        <p class="text-sm text-slate-600 mb-6">
+          Select the Confluence instance you want to connect to. Vantage will monitor pages, updates, and documentation changes.
+        </p>
+        <div class="space-y-3">
+          <label class="flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all border-indigo-500 bg-indigo-50" style="background:rgba(99,102,241,0.05)">
+            <input type="radio" name="confluence-instance" value="confluence-prod" checked class="mt-1 w-4 h-4 cursor-pointer" style="accent-color:#4f46e5"/>
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-sm font-semibold text-slate-900">Production Confluence</span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-600 text-white">ACTIVE</span>
+              </div>
+              <p class="text-xs text-slate-500 font-mono mb-1">https://mycompany.atlassian.net/wiki</p>
+              <p class="text-xs text-slate-400">34 spaces</p>
+            </div>
+          </label>
+          <label class="flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all border-slate-200 bg-white hover:border-slate-300">
+            <input type="radio" name="confluence-instance" value="confluence-staging" class="mt-1 w-4 h-4 cursor-pointer" style="accent-color:#4f46e5"/>
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-sm font-semibold text-slate-900">Staging Confluence</span>
+              </div>
+              <p class="text-xs text-slate-500 font-mono mb-1">https://staging-mycompany.atlassian.net/wiki</p>
+              <p class="text-xs text-slate-400">18 spaces</p>
+            </div>
+          </label>
+          <label class="flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all border-slate-200 bg-white hover:border-slate-300">
+            <input type="radio" name="confluence-instance" value="confluence-dev" class="mt-1 w-4 h-4 cursor-pointer" style="accent-color:#4f46e5"/>
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-sm font-semibold text-slate-900">Development Confluence</span>
+              </div>
+              <p class="text-xs text-slate-500 font-mono mb-1">https://dev-mycompany.atlassian.net/wiki</p>
+              <p class="text-xs text-slate-400">9 spaces</p>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Service Account Credentials -->
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 mb-6">
+        <div class="flex items-center justify-between mb-5">
+          <div class="flex items-center gap-2">
+            <div class="p-1.5 rounded-lg bg-slate-100">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-500"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <span class="text-xs font-bold tracking-widest uppercase text-slate-500">Service Account Credentials</span>
+          </div>
+        </div>
+        <p class="text-sm text-slate-600 mb-6">
+          Vantage uses a service account to securely access your Atlassian data. Your credentials are encrypted and never shared.
+        </p>
+
+        <div class="space-y-5">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-2">
+              Atlassian Email / Username
+            </label>
+            <input
+              type="email"
+              value="vantage-service@mycompany.com"
+              readonly
+              class="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-lg bg-slate-50 text-slate-700 font-mono"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-2">
+              API Token
+            </label>
+            <div class="relative">
+              <input
+                id="apiTokenInput"
+                type="password"
+                value="ATATT3xFfGF0bJ8rK9mN2pQ4sU6vW8xYzA0bC1dE3fG5hI7jK9lM2nO4pQ6rS8tU0vW2xY"
+                readonly
+                class="w-full px-4 py-2.5 pr-12 text-sm border border-slate-200 rounded-lg bg-slate-50 text-slate-700 font-mono"
+              />
+              <button
+                id="toggleTokenBtn"
+                onclick="toggleTokenVisibility()"
+                class="absolute right-3 top-1/2 text-slate-400 cursor-pointer border-0 bg-transparent p-1 transition-colors"
+                style="transform:translateY(-50%)"
+                onmouseover="this.style.color='#475569'"
+                onmouseout="this.style.color='#94a3b8'"
+              >
+                <svg id="eyeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg id="eyeOffIcon" hidden width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
+            <p class="text-xs text-slate-500 mt-2">
+              Last rotated: March 15, 2026 · Expires: September 15, 2026
+            </p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-2">
+              Organization ID
+            </label>
+            <input
+              type="text"
+              value="org-7f8e9d0c1b2a3456"
+              readonly
+              class="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-lg bg-slate-50 text-slate-700 font-mono"
+            />
+          </div>
+        </div>
+
+        <div class="mt-6 pt-6 border-t border-slate-200">
+          <div class="flex items-center gap-3 text-sm">
+            <div class="flex items-center gap-2">
+              <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse-dot" />
+              <span class="font-semibold text-emerald-700">Connected</span>
+            </div>
+            <span class="text-slate-400">·</span>
+            <span class="text-slate-500">Last synced: 2 minutes ago</span>
+            <span class="text-slate-400">·</span>
+            <span class="text-slate-500">Next sync: in 8 minutes</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Save Button -->
+      <div class="flex justify-end gap-3">
+        <button class="px-6 py-2.5 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg cursor-pointer transition-colors" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='#ffffff'">
+          Cancel
+        </button>
+        <button class="px-6 py-2.5 text-sm font-semibold text-white bg-indigo-600 rounded-lg cursor-pointer transition-colors shadow-sm border-0" onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='#4f46e5'">
+          Save Changes
+        </button>
+      </div>
     </main>
   </div>
 
@@ -633,6 +871,7 @@
     const body              = document.body;
     const dashboardPage     = document.getElementById('dashboardPage');
     const docsPage          = document.getElementById('docsPage');
+    const settingsPage      = document.getElementById('settingsPage');
     const pulseView         = document.getElementById('pulseView');
     const horizonView       = document.getElementById('horizonView');
     const subHeader         = document.getElementById('subHeader');
@@ -645,8 +884,9 @@
     const horizonBtn        = document.getElementById('horizonBtn');
     const viewToggleWrap    = document.getElementById('viewToggleWrap');
     const projectSwitcherWrap = document.getElementById('projectSwitcherWrap');
-    const pageToggleBtn     = document.getElementById('pageToggleBtn');
-    const pageToggleLabel   = document.getElementById('pageToggleLabel');
+    const dashboardBtn      = document.getElementById('dashboardBtn');
+    const docsBtn           = document.getElementById('docsBtn');
+    const settingsBtn       = document.getElementById('settingsBtn');
     const switcherBtn       = document.getElementById('switcherBtn');
     const switcherChevron   = document.getElementById('switcherChevron');
     const switcherDropdown  = document.getElementById('switcherDropdown');
@@ -729,38 +969,72 @@
     }
 
     // ── Page switching ────────────────────────────────────────────
-    function togglePage() {
-      if (currentPage === 'dashboard') {
-        currentPage = 'docs';
-        dashboardPage.hidden = true;
-        docsPage.hidden = false;
-        projectSwitcherWrap.style.display = 'none';
-        viewToggleWrap.style.display = 'none';
-        pageToggleLabel.textContent = 'Dashboard';
-        pageToggleBtn.style.background = '#4f46e5'; // indigo-600
-        pageToggleBtn.style.color = '#ffffff';
-        body.style.background = '#f8fafc';
-        chatBtn.hidden = true; // Hide chat button on docs page
-        if (chatOpen) closeChat(); // Close chat if open
-      } else {
-        currentPage = 'dashboard';
+    function goToPage(page) {
+      currentPage = page;
+
+      // Hide all pages
+      dashboardPage.hidden = true;
+      docsPage.hidden = true;
+      settingsPage.hidden = true;
+
+      // Reset button styles
+      dashboardBtn.style.background = '#334155'; // slate-700
+      dashboardBtn.style.color = '#cbd5e1';
+      docsBtn.style.background = '#334155';
+      docsBtn.style.color = '#cbd5e1';
+      settingsBtn.style.background = '#334155';
+      settingsBtn.style.color = '#cbd5e1';
+
+      if (page === 'dashboard') {
         dashboardPage.hidden = false;
-        docsPage.hidden = true;
         projectSwitcherWrap.style.display = '';
         viewToggleWrap.style.display = '';
-        pageToggleLabel.textContent = 'Docs';
-        pageToggleBtn.style.background = '#334155'; // slate-700
-        pageToggleBtn.style.color = '#cbd5e1';
+        dashboardBtn.hidden = true;
         setView(currentView); // restore dashboard background
         if (!chatOpen) chatBtn.hidden = false; // Show chat button on dashboard
+      } else {
+        // Docs or Settings page
+        projectSwitcherWrap.style.display = 'none';
+        viewToggleWrap.style.display = 'none';
+        dashboardBtn.hidden = false;
+        body.style.background = '#f8fafc';
+        chatBtn.hidden = true; // Hide chat button
+        if (chatOpen) closeChat(); // Close chat if open
+
+        if (page === 'docs') {
+          docsPage.hidden = false;
+          docsBtn.style.background = '#4f46e5'; // indigo-600
+          docsBtn.style.color = '#ffffff';
+        } else if (page === 'settings') {
+          settingsPage.hidden = false;
+          settingsBtn.style.background = '#4f46e5'; // indigo-600
+          settingsBtn.style.color = '#ffffff';
+        }
       }
     }
 
     // Logo click: go back to dashboard, pulse view
     document.getElementById('logoBtn').addEventListener('click', function() {
-      if (currentPage !== 'dashboard') togglePage();
+      goToPage('dashboard');
       setView('pulse');
     });
+
+    // ── Settings page token visibility toggle ─────────────────────
+    function toggleTokenVisibility() {
+      const tokenInput = document.getElementById('apiTokenInput');
+      const eyeIcon = document.getElementById('eyeIcon');
+      const eyeOffIcon = document.getElementById('eyeOffIcon');
+
+      if (tokenInput.type === 'password') {
+        tokenInput.type = 'text';
+        eyeIcon.hidden = true;
+        eyeOffIcon.hidden = false;
+      } else {
+        tokenInput.type = 'password';
+        eyeIcon.hidden = false;
+        eyeOffIcon.hidden = true;
+      }
+    }
 
     // ── Project switcher ──────────────────────────────────────────
     function renderProjectList(filter) {

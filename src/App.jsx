@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import {
   CheckCircle2, Clock, Zap, BookOpen, Activity, Target,
   TrendingUp, Shield, Database, Rocket, Layers, ChevronDown, Search,
-  MessageSquare, X, Send, Sparkles,
+  MessageSquare, X, Send, Sparkles, Settings, Eye, EyeOff,
 } from 'lucide-react'
 
 // Static Data
@@ -523,6 +523,33 @@ function DocsPage() {
         </ul>
       </Card>
 
+      <Card className="mb-8">
+        <h2 className="text-2xl font-bold mb-4">Configuration & Settings</h2>
+        <p className="text-sm leading-relaxed text-slate-600 mb-4">
+          Vantage connects seamlessly to your Atlassian ecosystem through secure service account integration. The Settings page provides a centralized location to manage all connection configurations.
+        </p>
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-base font-semibold text-slate-800 mb-2">Jira Instance Selection</h3>
+            <p className="text-sm leading-relaxed text-slate-600">
+              Choose which Jira environment to connect to: Production, Staging, or Development. Vantage automatically syncs tickets, sprints, and epics from the selected instance in real-time. Switch between instances without losing your configuration.
+            </p>
+          </div>
+          <div>
+            <h3 className="text-base font-semibold text-slate-800 mb-2">Confluence Instance Selection</h3>
+            <p className="text-sm leading-relaxed text-slate-600">
+              Select your Confluence workspace to monitor documentation updates, page changes, and team collaboration. Vantage tracks all spaces and surfaces relevant documentation context alongside technical work.
+            </p>
+          </div>
+          <div>
+            <h3 className="text-base font-semibold text-slate-800 mb-2">Service Account Credentials</h3>
+            <p className="text-sm leading-relaxed text-slate-600">
+              Secure authentication through dedicated service account credentials. Configure your Atlassian email, API token, and organization ID once. All credentials are encrypted at rest and in transit. Connection status and sync timing are displayed in real-time, with automatic token rotation notifications.
+            </p>
+          </div>
+        </div>
+      </Card>
+
       <Card>
         <h2 className="text-2xl font-bold mb-4">Use Cases</h2>
         <ul className="space-y-2 text-sm text-slate-600">
@@ -533,6 +560,195 @@ function DocsPage() {
           <li>Cross-Functional Alignment. Engineering, product, and leadership see the same data.</li>
         </ul>
       </Card>
+    </main>
+  )
+}
+
+function SettingsPage() {
+  const [showToken, setShowToken] = useState(false)
+  const [selectedJira, setSelectedJira] = useState('jira-prod')
+  const [selectedConfluence, setSelectedConfluence] = useState('confluence-prod')
+
+  const jiraInstances = [
+    { id: 'jira-prod', name: 'Production Jira', url: 'https://mycompany.atlassian.net', projects: '47 projects' },
+    { id: 'jira-staging', name: 'Staging Jira', url: 'https://staging-mycompany.atlassian.net', projects: '23 projects' },
+    { id: 'jira-dev', name: 'Development Jira', url: 'https://dev-mycompany.atlassian.net', projects: '12 projects' },
+  ]
+
+  const confluenceInstances = [
+    { id: 'confluence-prod', name: 'Production Confluence', url: 'https://mycompany.atlassian.net/wiki', spaces: '34 spaces' },
+    { id: 'confluence-staging', name: 'Staging Confluence', url: 'https://staging-mycompany.atlassian.net/wiki', spaces: '18 spaces' },
+    { id: 'confluence-dev', name: 'Development Confluence', url: 'https://dev-mycompany.atlassian.net/wiki', spaces: '9 spaces' },
+  ]
+
+  return (
+    <main className="max-w-5xl mx-auto px-6 py-8">
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold text-slate-900 mb-2">Settings</h1>
+        <p className="text-sm text-slate-500">Configure your Atlassian integrations and service account credentials</p>
+      </div>
+
+      {/* Jira Instances */}
+      <Card className="mb-6">
+        <SectionHeader icon={Target} label="Jira Instances" />
+        <p className="text-sm text-slate-600 mb-6">
+          Select the Jira instance you want to connect to. Vantage will sync tickets, sprints, and epics in real-time.
+        </p>
+        <div className="space-y-3">
+          {jiraInstances.map(instance => (
+            <label
+              key={instance.id}
+              className={`flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                selectedJira === instance.id
+                  ? 'border-indigo-500 bg-indigo-50/50'
+                  : 'border-slate-200 hover:border-slate-300 bg-white'
+              }`}
+            >
+              <input
+                type="radio"
+                name="jira-instance"
+                value={instance.id}
+                checked={selectedJira === instance.id}
+                onChange={(e) => setSelectedJira(e.target.value)}
+                className="mt-1 w-4 h-4 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+              />
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-sm font-semibold text-slate-900">{instance.name}</span>
+                  {selectedJira === instance.id && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-600 text-white">
+                      ACTIVE
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-slate-500 font-mono mb-1">{instance.url}</p>
+                <p className="text-xs text-slate-400">{instance.projects}</p>
+              </div>
+            </label>
+          ))}
+        </div>
+      </Card>
+
+      {/* Confluence Instances */}
+      <Card className="mb-6">
+        <SectionHeader icon={BookOpen} label="Confluence Instances" />
+        <p className="text-sm text-slate-600 mb-6">
+          Select the Confluence instance you want to connect to. Vantage will monitor pages, updates, and documentation changes.
+        </p>
+        <div className="space-y-3">
+          {confluenceInstances.map(instance => (
+            <label
+              key={instance.id}
+              className={`flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                selectedConfluence === instance.id
+                  ? 'border-indigo-500 bg-indigo-50/50'
+                  : 'border-slate-200 hover:border-slate-300 bg-white'
+              }`}
+            >
+              <input
+                type="radio"
+                name="confluence-instance"
+                value={instance.id}
+                checked={selectedConfluence === instance.id}
+                onChange={(e) => setSelectedConfluence(e.target.value)}
+                className="mt-1 w-4 h-4 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+              />
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-sm font-semibold text-slate-900">{instance.name}</span>
+                  {selectedConfluence === instance.id && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-600 text-white">
+                      ACTIVE
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-slate-500 font-mono mb-1">{instance.url}</p>
+                <p className="text-xs text-slate-400">{instance.spaces}</p>
+              </div>
+            </label>
+          ))}
+        </div>
+      </Card>
+
+      {/* Service Account Credentials */}
+      <Card className="mb-6">
+        <SectionHeader icon={Shield} label="Service Account Credentials" />
+        <p className="text-sm text-slate-600 mb-6">
+          Vantage uses a service account to securely access your Atlassian data. Your credentials are encrypted and never shared.
+        </p>
+
+        <div className="space-y-5">
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-2">
+              Atlassian Email / Username
+            </label>
+            <input
+              type="email"
+              value="vantage-service@mycompany.com"
+              readOnly
+              className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-lg bg-slate-50 text-slate-700 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-2">
+              API Token
+            </label>
+            <div className="relative">
+              <input
+                type={showToken ? 'text' : 'password'}
+                value="ATATT3xFfGF0bJ8rK9mN2pQ4sU6vW8xYzA0bC1dE3fG5hI7jK9lM2nO4pQ6rS8tU0vW2xY"
+                readOnly
+                className="w-full px-4 py-2.5 pr-12 text-sm border border-slate-200 rounded-lg bg-slate-50 text-slate-700 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              />
+              <button
+                onClick={() => setShowToken(!showToken)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                {showToken ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+            <p className="text-xs text-slate-500 mt-2">
+              Last rotated: March 15, 2026 · Expires: September 15, 2026
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-2">
+              Organization ID
+            </label>
+            <input
+              type="text"
+              value="org-7f8e9d0c1b2a3456"
+              readOnly
+              className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-lg bg-slate-50 text-slate-700 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+
+        <div className="mt-6 pt-6 border-t border-slate-200">
+          <div className="flex items-center gap-3 text-sm">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="font-semibold text-emerald-700">Connected</span>
+            </div>
+            <span className="text-slate-400">·</span>
+            <span className="text-slate-500">Last synced: 2 minutes ago</span>
+            <span className="text-slate-400">·</span>
+            <span className="text-slate-500">Next sync: in 8 minutes</span>
+          </div>
+        </div>
+      </Card>
+
+      {/* Save Button */}
+      <div className="flex justify-end gap-3">
+        <button className="px-6 py-2.5 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
+          Cancel
+        </button>
+        <button className="px-6 py-2.5 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
+          Save Changes
+        </button>
+      </div>
     </main>
   )
 }
@@ -713,22 +929,45 @@ export default function App() {
           <div className="flex items-center gap-3">
             {isDashboard && <ProjectSwitcher />}
             {isDashboard && <ViewToggle view={view} setView={setView} />}
+            {!isDashboard && (
+              <button
+                onClick={() => {
+                  setPage('dashboard')
+                  setView('pulse')
+                }}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg text-[13px] font-semibold transition-all cursor-pointer bg-slate-700 text-slate-300 hover:bg-slate-600"
+              >
+                <Activity size={13} strokeWidth={2.5} />
+                Dashboard
+              </button>
+            )}
             <button
-              onClick={() => setPage(isDashboard ? 'docs' : 'dashboard')}
+              onClick={() => setPage('docs')}
               className={`hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg text-[13px] font-semibold transition-all cursor-pointer ${
-                isDashboard
-                  ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                  : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                page === 'docs'
+                  ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
               }`}
             >
               <BookOpen size={13} strokeWidth={2.5} />
-              {isDashboard ? 'Docs' : 'Dashboard'}
+              Docs
+            </button>
+            <button
+              onClick={() => setPage('settings')}
+              className={`hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg text-[13px] font-semibold transition-all cursor-pointer ${
+                page === 'settings'
+                  ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+              }`}
+            >
+              <Settings size={13} strokeWidth={2.5} />
+              Settings
             </button>
           </div>
         </div>
       </header>
 
-      {isDashboard ? (
+      {page === 'dashboard' ? (
         <>
           <div className={`border-b transition-colors duration-500 ${
             isPulse
@@ -765,8 +1004,10 @@ export default function App() {
             {isPulse ? <PulseView /> : <HorizonView />}
           </main>
         </>
-      ) : (
+      ) : page === 'docs' ? (
         <DocsPage />
+      ) : (
+        <SettingsPage />
       )}
 
       {/* Floating Chat Button - only show on dashboard */}
